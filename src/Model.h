@@ -55,6 +55,7 @@ public:
 	}
 };
 
+
 class QuadModel : public Model
 {
 	unsigned nbr_indices = 0;

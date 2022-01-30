@@ -30,6 +30,8 @@ public:
 						
 	vec3f position;
 
+	float roll, yaw, pitch;
+
 	Camera(
 		float vfov,
 		float aspect,
@@ -38,6 +40,7 @@ public:
 		vfov(vfov), aspect(aspect), zNear(zNear), zFar(zFar)
 	{
 		position = {0.0f, 0.0f, 0.0f};
+		roll = yaw = pitch = 0;
 	}
 
 	// Move to an absolute position
@@ -54,6 +57,20 @@ public:
 		position += v;
 	}
 
+	void rotateTo(const float& roll, const float& yaw, const float& pitch)
+	{
+		this->roll = roll;
+		this->yaw = yaw;
+		this->pitch = pitch;
+	}
+
+	void rotate(const float& roll, const float& yaw, const float& pitch)
+	{
+		this->roll += roll;
+		this->yaw += yaw;
+		this->pitch += pitch;
+	}
+
 	// Return World-to-View matrix for this camera
 	//
 	mat4f get_WorldToViewMatrix()
@@ -65,7 +82,7 @@ public:
 		//		inverse(T(p)*R) = inverse(R)*inverse(T(p)) = transpose(R)*T(-p)
 		// Since now there is no rotation, this matrix is simply T(-p)
 
-		return mat4f::translation(-position);
+		return mat4f::rotation(0, yaw, pitch) * mat4f::translation(-position);
 	}
 
 	// Matrix transforming from View space to Clip space

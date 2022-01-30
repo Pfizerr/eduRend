@@ -36,6 +36,7 @@ OurTestScene::OurTestScene(
 //
 void OurTestScene::Init()
 {
+
 	camera = new Camera(
 		45.0f * fTO_RAD,		// field-of-view (radians)
 		(float)window_width / window_height,	// aspect ratio
@@ -48,6 +49,7 @@ void OurTestScene::Init()
 	// Create objects
 	quad = new QuadModel(dxdevice, dxdevice_context);
 	sponza = new OBJModel("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context);
+	cube = new CubeModel(dxdevice, dxdevice_context);
 }
 
 //
@@ -68,6 +70,18 @@ void OurTestScene::Update(
 	if (input_handler->IsKeyPressed(Keys::Left) || input_handler->IsKeyPressed(Keys::A))
 		camera->move({ -camera_vel * dt, 0.0f, 0.0f });
 
+	// Relative mouse movement since last frame
+	long mousedx = input_handler->GetMouseDeltaX();
+	long mousedy = input_handler->GetMouseDeltaY();
+
+	// Camera rotational control (yaw and pitch)
+	if (input_handler->IsKeyPressed(Keys::Space) && (mousedx != 0 || mousedy != 0))
+	{
+		printf(std::to_string(mousedx*dt).c_str());
+		printf(std::string("\n").c_str());
+		camera->rotate(0, mousedx * dt, mousedy * dt);
+	}
+
 	// Now set/update object transformations
 	// This can be done using any sequence of transformation matrices,
 	// but the T*R*S order is most common; i.e. scale, then rotate, and then translate.
@@ -75,14 +89,19 @@ void OurTestScene::Update(
 	// via e.g. Mquad = linalg::mat4f_identity; 
 
 	// Quad model-to-world transformation
-	Mquad = mat4f::translation(0, 0, 0) *			// No translation
-		mat4f::rotation(-angle, 0.0f, 1.0f, 0.0f) *	// Rotate continuously around the y-axis
-		mat4f::scaling(1.5, 1.5, 1.5);				// Scale uniformly to 150%
+	Mquad = mat4f::translation(-1, -1, -2) *			// No translation
+		mat4f::rotation(-angle/5, 0.0f, 1.0f, 0.0f) *	// Rotate continuously around the y-axis
+		mat4f::scaling(1, 1, 1);				// Scale uniformly to 150%
 
 	// Sponza model-to-world transformation
 	Msponza = mat4f::translation(0, -5, 0) *		 // Move down 5 units
-		mat4f::rotation(fPI / 2, 0.0f, 1.0f, 0.0f) * // Rotate pi/2 radians (90 degrees) around y
+		mat4f::rotation(fPI/2, 0.0f, 1.0f, 0.0f) * // Rotate pi/2 radians (90 degrees) around y
 		mat4f::scaling(0.05f);						 // The scene is quite large so scale it down to 5%
+
+	Mcube = mat4f::translation(1, -1, -2) *
+		mat4f::rotation(-angle/5, 0, 1.0f, 0.0f) *
+		mat4f::scaling(1, 1, 1);
+
 
 	// Increment the rotation angle.
 	angle += angle_vel * dt;
@@ -115,7 +134,10 @@ void OurTestScene::Render()
 
 	// Load matrices + Sponza's transformation to the device and render it
 	UpdateTransformationBuffer(Msponza, Mview, Mproj);
-	sponza->Render();
+//	sponza->Render();
+
+	UpdateTransformationBuffer(Mcube, Mview, Mproj);
+	cube->Render();
 }
 
 void OurTestScene::Release()
@@ -123,6 +145,7 @@ void OurTestScene::Release()
 	SAFE_DELETE(quad);
 	SAFE_DELETE(sponza);
 	SAFE_DELETE(camera);
+	SAFE_DELETE(cube);
 
 	SAFE_RELEASE(transformation_buffer);
 	// + release other CBuffers
