@@ -17,6 +17,7 @@ CubeModel::CubeModel(
 		v12, v13, v14, v15,
 		v16, v17, v18, v19,
 		v20, v21, v22, v23;
+
 	// Face #1 (FRONT)
 	v0.Pos = { -0.5, -0.5f, 0.5f };
 	v0.Normal = { 0, 0, 1 };
@@ -68,16 +69,22 @@ CubeModel::CubeModel(
 	v14.TexCoord = { 1, 1 };
 	v15.Pos = { -0.5f, 0.5f, -0.5f };
 	v15.Normal = { - 1, 0, 0 };
+	
 	v15.TexCoord = { 1, 0 };
 	// Face #5 (TOP)
 	v16.Pos = { -0.5f, 0.5f, 0.5f };
 	v16.Normal = { 0, -1, 0 };
+	v16.TexCoord = { 0, 0 };
 	v17.Pos = { 0.5f, 0.5f, 0.5f };
 	v17.Normal = { 0, -1, 0 };
+	v16.TexCoord = { 0, 1 };
 	v18.Pos = { 0.5f, 0.5f, -0.5f };
 	v18.Normal = { 0, -1, 0 };
+	v16.TexCoord = { 1, 1 };
 	v19.Pos = { -0.5f, 0.5f, -0.5f};
 	v19.Normal = { 0, -1, 0 };
+	v16.TexCoord = { 1, 0 };
+	
 	// Face #6 (BOTTOM)
 	v20.Pos = { -0.5f, -0.5f, -0.5f };
 	v20.Normal = { 0, 1, 0 };

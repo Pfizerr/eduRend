@@ -50,6 +50,7 @@ void OurTestScene::Init()
 	quad = new QuadModel(dxdevice, dxdevice_context);
 	sponza = new OBJModel("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context);
 	cube = new CubeModel(dxdevice, dxdevice_context);
+	sphere_model = new OBJModel("assets/sphere_model/sphere_model.obj", dxdevice, dxdevice_context);
 }
 
 //
@@ -89,7 +90,7 @@ void OurTestScene::Update(
 	// via e.g. Mquad = linalg::mat4f_identity; 
 
 	// Quad model-to-world transformation
-	Mquad = mat4f::translation(-1, -1, -2) *			// No translation
+	Mquad = mat4f::translation(-3, -1, -2) *			// No translation
 		mat4f::rotation(-angle/5, 0.0f, 1.0f, 0.0f) *	// Rotate continuously around the y-axis
 		mat4f::scaling(1, 1, 1);				// Scale uniformly to 150%
 
@@ -98,8 +99,14 @@ void OurTestScene::Update(
 		mat4f::rotation(fPI/2, 0.0f, 1.0f, 0.0f) * // Rotate pi/2 radians (90 degrees) around y
 		mat4f::scaling(0.05f);						 // The scene is quite large so scale it down to 5%
 
-	Mcube = mat4f::translation(1, -1, -2) *
+	// Cube model-to-world transformation
+	Mcube = mat4f::translation(-1, -1, -2) *
 		mat4f::rotation(-angle/5, 0, 1.0f, 0.0f) *
+		mat4f::scaling(1, 1, 1);
+
+	// Sphere_Model model-to-world transformation
+	Msphere_model = mat4f::translation(1, -1, -2) *
+		mat4f::rotation(-angle/5, 0, 1.0f, 0) *
 		mat4f::scaling(1, 1, 1);
 
 
@@ -134,10 +141,13 @@ void OurTestScene::Render()
 
 	// Load matrices + Sponza's transformation to the device and render it
 	UpdateTransformationBuffer(Msponza, Mview, Mproj);
-//	sponza->Render();
+	sponza->Render();
 
 	UpdateTransformationBuffer(Mcube, Mview, Mproj);
 	cube->Render();
+
+	UpdateTransformationBuffer(Msphere_model, Mview, Mproj);
+	sphere_model->Render();
 }
 
 void OurTestScene::Release()
