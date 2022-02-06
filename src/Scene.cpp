@@ -50,7 +50,9 @@ void OurTestScene::Init()
 	quad = new QuadModel(dxdevice, dxdevice_context);
 	sponza = new OBJModel("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context);
 	cube = new CubeModel(dxdevice, dxdevice_context);
-	sphere_model = new OBJModel("assets/sphere_model/sphere_model.obj", dxdevice, dxdevice_context);
+	sphere01 = new OBJModel("assets/sphere01/sphere01.obj", dxdevice, dxdevice_context);
+	sphere02 = new OBJModel("assets/sphere02/sphere02.obj", dxdevice, dxdevice_context);
+	sphere03 = new OBJModel("assets/sphere03/sphere03.obj", dxdevice, dxdevice_context);
 }
 
 //
@@ -61,7 +63,7 @@ void OurTestScene::Update(
 	float dt,
 	InputHandler* input_handler)
 {
-	// Basic camera control
+	// First-person view-/camera-space movement.
 	if (input_handler->IsKeyPressed(Keys::Up) || input_handler->IsKeyPressed(Keys::W))
 		camera->move({ 0.0f, 0.0f, -camera_vel * dt });
 	if (input_handler->IsKeyPressed(Keys::Down) || input_handler->IsKeyPressed(Keys::S))
@@ -83,6 +85,7 @@ void OurTestScene::Update(
 		camera->rotate(0, mousedx * dt, mousedy * dt);
 	}
 
+
 	// Now set/update object transformations
 	// This can be done using any sequence of transformation matrices,
 	// but the T*R*S order is most common; i.e. scale, then rotate, and then translate.
@@ -101,13 +104,23 @@ void OurTestScene::Update(
 
 	// Cube model-to-world transformation
 	Mcube = mat4f::translation(-1, -1, -2) *
-		mat4f::rotation(-angle/5, 0, 1.0f, 0.0f) *
+		mat4f::rotation(-angle/5, 0.0f, 1.0f, 0.0f) *
 		mat4f::scaling(1, 1, 1);
 
-	// Sphere_Model model-to-world transformation
-	Msphere_model = mat4f::translation(1, -1, -2) *
-		mat4f::rotation(-angle/5, 0, 1.0f, 0) *
+	// Sphere01 model-to-world transformation
+	Msphere01 = mat4f::translation(-2, 0, -8) *
+		mat4f::rotation(-angle/10, 0.0f, 1.0f, 0.0f) *
 		mat4f::scaling(1, 1, 1);
+
+	// Sphere02 model-to-world transformation
+	Msphere02 = mat4f::rotation(0.0f, angle / 4, 1.0f, 0.0f) * 
+		mat4f::translation(7, 0, 0) *
+		mat4f::scaling(1, 1, 1);
+
+	// Sphere03 model-to-world transformation
+	Msphere03 = mat4f::rotation(-angle / 4, 0.0f, 1.0f, 0.0f) * 
+		mat4f::translation(3, 0, 0) *
+		mat4f::scaling(0.5f, 0.5f, 0.5f);
 
 
 	// Increment the rotation angle.
@@ -136,18 +149,24 @@ void OurTestScene::Render()
 	Mproj = camera->get_ProjectionMatrix();
 
 	// Load matrices + the Quad's transformation to the device and render it
-	UpdateTransformationBuffer(Mquad, Mview, Mproj);
-	quad->Render();
+	//UpdateTransformationBuffer(Mquad, Mview, Mproj);
+	//quad->Render();
 
 	// Load matrices + Sponza's transformation to the device and render it
-	UpdateTransformationBuffer(Msponza, Mview, Mproj);
-	sponza->Render();
+	//UpdateTransformationBuffer(Msponza, Mview, Mproj);
+	//sponza->Render();
 
-	UpdateTransformationBuffer(Mcube, Mview, Mproj);
-	cube->Render();
+	//UpdateTransformationBuffer(Mcube, Mview, Mproj);
+	//cube->Render();
 
-	UpdateTransformationBuffer(Msphere_model, Mview, Mproj);
-	sphere_model->Render();
+	UpdateTransformationBuffer(Msphere01, Mview, Mproj);
+	sphere01->Render();
+
+	UpdateTransformationBuffer(Msphere01 * Msphere02, Mview, Mproj);
+	sphere02->Render();
+
+	UpdateTransformationBuffer(Msphere01 * Msphere02 * Msphere03, Mview, Mproj);
+	sphere03->Render();
 }
 
 void OurTestScene::Release()

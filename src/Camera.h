@@ -57,6 +57,11 @@ public:
 		position += v;
 	}
 
+	void move(const vec4f& v)
+	{
+		
+	}
+
 	void rotateTo(const float& roll, const float& yaw, const float& pitch)
 	{
 		this->roll = roll;
