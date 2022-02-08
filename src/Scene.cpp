@@ -53,6 +53,7 @@ void OurTestScene::Init()
 	sphere01 = new OBJModel("assets/sphere01/sphere01.obj", dxdevice, dxdevice_context);
 	sphere02 = new OBJModel("assets/sphere02/sphere02.obj", dxdevice, dxdevice_context);
 	sphere03 = new OBJModel("assets/sphere03/sphere03.obj", dxdevice, dxdevice_context);
+	plane = new OBJModel("assets/plane/plane.obj", dxdevice, dxdevice_context);
 }
 
 //
@@ -122,6 +123,10 @@ void OurTestScene::Update(
 		mat4f::translation(3, 0, 0) *
 		mat4f::scaling(0.5f, 0.5f, 0.5f);
 
+	Mplane = mat4f::translation(-7, 0, -5) *
+		mat4f::rotation(0.0f, 0.0f, 1.0f, 0.0f) *
+		mat4f::scaling(1.0f, 1.0f, 1.0f);
+
 
 	// Increment the rotation angle.
 	angle += angle_vel * dt;
@@ -167,6 +172,9 @@ void OurTestScene::Render()
 
 	UpdateTransformationBuffer(Msphere01 * Msphere02 * Msphere03, Mview, Mproj);
 	sphere03->Render();
+
+	UpdateTransformationBuffer(Mplane, Mview, Mproj);
+	plane->Render();
 }
 
 void OurTestScene::Release()

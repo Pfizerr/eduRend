@@ -81,6 +81,7 @@ class OurTestScene : public Scene
 	OBJModel* sphere01;
 	OBJModel* sphere02;
 	OBJModel* sphere03;
+	OBJModel* plane;
 
 	// Model-to-world transformation matrices
 	mat4f Msponza;
@@ -89,6 +90,7 @@ class OurTestScene : public Scene
 	mat4f Msphere01;
 	mat4f Msphere02;
 	mat4f Msphere03;
+	mat4f Mplane;
 
 	// World-to-view matrix
 	mat4f Mview;
