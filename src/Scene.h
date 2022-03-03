@@ -56,8 +56,10 @@ class OurTestScene : public Scene
 
 	// CBuffer for transformation matrices
 	ID3D11Buffer* transformation_buffer = nullptr;
-	// + other CBuffers
-
+	// CBuffer for phong-related positional matrices (light-source and camera position)
+	ID3D11Buffer* lightcam_buffer = nullptr;
+	// CBuffer for phong components k_a, k_d, k_s and (alpha). respectively, ambient, diffuse, and blank color and shininess.
+	ID3D11Buffer* phong_component_buffer = nullptr;
 	// 
 	// CBuffer client-side definitions
 	// These must match the corresponding shader definitions 
@@ -68,6 +70,17 @@ class OurTestScene : public Scene
 		mat4f ModelToWorldMatrix;
 		mat4f WorldToViewMatrix;
 		mat4f ProjectionMatrix;
+	};
+
+	struct LightCamBuffer
+	{
+		vec4f LightPositionVector;
+		vec4f CameraPositionVector;
+	};
+
+	struct PhongComponentBuffer
+	{
+
 	};
 
 	//
@@ -102,13 +115,24 @@ class OurTestScene : public Scene
 	float angle_vel = fPI / 2;	// ...and its velocity (radians/sec)
 	float camera_vel = 5.0f;	// Camera movement velocity in units/s
 	float fps_cooldown = 0;
+	vec3f pointlight_pos = { 3, 5, 0 };
+	vec3f previous_pointlight_pos;
+	vec3f previous_camera_pos;
 
 	void InitTransformationBuffer();
+	void InitLightCamBuffer();
+	void InitPhongComponentBuffer();
 
 	void UpdateTransformationBuffer(
 		mat4f ModelToWorldMatrix,
 		mat4f WorldToViewMatrix,
 		mat4f ProjectionMatrix);
+
+	void UpdateLightCamBuffer(
+		vec4f LightPositionVector,
+		vec4f CameraPositionVector);
+	
+	void UpdatePhongComponentBuffer();
 
 public:
 	OurTestScene(

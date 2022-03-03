@@ -245,13 +245,13 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 	DXGI_SWAP_CHAIN_DESC sd;
 	memset(&sd, 0, sizeof(sd));
 	sd.BufferCount = 1;
-	sd.BufferDesc.Width = width;
+	sd.BufferDesc.Width = width; // bredd på frame-buffern (samma som ges till fönstret) (fönstret har samma resolution som vår swap-chain/frame-buffer)
 	sd.BufferDesc.Height = height;
-	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;  // Färgdjup
 	sd.BufferDesc.RefreshRate.Numerator = 60;
 	sd.BufferDesc.RefreshRate.Denominator = 1;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	sd.OutputWindow = g_Window->GetHandle(); // g_hWnd;
+	sd.OutputWindow = g_Window->GetHandle(); // g_hWnd;			WIN32 window
 	sd.SampleDesc.Count = 1;
 	sd.SampleDesc.Quality = 0;
 	sd.Windowed = TRUE;
@@ -294,7 +294,8 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 void InitRasterizerState()
 {
 	D3D11_RASTERIZER_DESC rasterizerState;
-	rasterizerState.FillMode = D3D11_FILL_WIREFRAME;
+	//rasterizerState.FillMode = D3D11_FILL_WIREFRAME;
+	rasterizerState.FillMode = D3D11_FILL_SOLID;
 	rasterizerState.CullMode = D3D11_CULL_BACK;
 	rasterizerState.FrontCounterClockwise = true;
 	rasterizerState.DepthBias = false;

@@ -29,6 +29,8 @@ OurTestScene::OurTestScene(
 { 
 	InitTransformationBuffer();
 	// + init other CBuffers
+	InitLightCamBuffer();
+	InitPhongComponentBuffer();
 }
 
 //
@@ -53,7 +55,7 @@ void OurTestScene::Init()
 	sphere01 = new OBJModel("assets/sphere01/sphere01.obj", dxdevice, dxdevice_context);
 	sphere02 = new OBJModel("assets/sphere02/sphere02.obj", dxdevice, dxdevice_context);
 	sphere03 = new OBJModel("assets/sphere03/sphere03.obj", dxdevice, dxdevice_context);
-	plane = new OBJModel("assets/plane/plane.obj", dxdevice, dxdevice_context);
+	//plane = new OBJModel("assets/plane/plane.obj", dxdevice, dxdevice_context);
 }
 
 //
@@ -66,24 +68,33 @@ void OurTestScene::Update(
 {
 	// First-person view-/camera-space movement.
 	if (input_handler->IsKeyPressed(Keys::Up) || input_handler->IsKeyPressed(Keys::W))
-		camera->move({ 0.0f, 0.0f, -camera_vel * dt });
+		camera->move({ 0.0f, 0.0f, -camera_vel * dt});
 	if (input_handler->IsKeyPressed(Keys::Down) || input_handler->IsKeyPressed(Keys::S))
 		camera->move({ 0.0f, 0.0f, camera_vel * dt });
 	if (input_handler->IsKeyPressed(Keys::Right) || input_handler->IsKeyPressed(Keys::D))
 		camera->move({ camera_vel * dt, 0.0f, 0.0f });
 	if (input_handler->IsKeyPressed(Keys::Left) || input_handler->IsKeyPressed(Keys::A))
 		camera->move({ -camera_vel * dt, 0.0f, 0.0f });
+	if (input_handler->IsKeyPressed(Keys::K))
+		camera->moveTo(vec3f(- 5, 0, 0));
 
 	// Relative mouse movement since last frame
 	long mousedx = input_handler->GetMouseDeltaX();
 	long mousedy = input_handler->GetMouseDeltaY();
 
 	// Camera rotational control (yaw and pitch)
-	if (input_handler->IsKeyPressed(Keys::Space) && (mousedx != 0 || mousedy != 0))
+	if (mousedx != 0)
 	{
 		printf(std::to_string(mousedx*dt).c_str());
 		printf(std::string("\n").c_str());
-		camera->rotate(0, mousedx * dt, mousedy * dt);
+		camera->rotate(0, mousedx * dt, 0);
+	}
+
+	if (mousedy != 0)
+	{
+		printf(std::to_string(mousedx * dt).c_str());
+		printf(std::string("\n").c_str());
+		camera->rotate(0, 0, mousedy * dt);
 	}
 
 
@@ -123,9 +134,9 @@ void OurTestScene::Update(
 		mat4f::translation(3, 0, 0) *
 		mat4f::scaling(0.5f, 0.5f, 0.5f);
 
-	Mplane = mat4f::translation(-7, 0, -5) *
-		mat4f::rotation(0.0f, 0.0f, 1.0f, 0.0f) *
-		mat4f::scaling(1.0f, 1.0f, 1.0f);
+	//Mplane = mat4f::translation(-7, 0, -5) *
+	//	mat4f::rotation(0.0f, 0.0f, 1.0f, 0.0f) *
+	//	mat4f::scaling(1.0f, 1.0f, 1.0f);
 
 
 	// Increment the rotation angle.
@@ -146,6 +157,30 @@ void OurTestScene::Update(
 //
 void OurTestScene::Render()
 {
+	if (!(previous_pointlight_pos == pointlight_pos)
+		|| !(previous_camera_pos == camera->position))
+	{
+		// Converting the regular 3D light and camera positions to 4D vectors to
+		// resolve buffer data-alignment issues.
+		vec4f LightPositionVector(
+			pointlight_pos.x,
+			pointlight_pos.y,
+			pointlight_pos.z,
+			0);
+		vec4f CameraPositionVector(
+			camera->position.x,
+			camera->position.y,
+			camera->position.z,
+			0);
+
+		// Bind lightcam_buffer to slot b0 of the PS
+		dxdevice_context->PSSetConstantBuffers(0, 1, &lightcam_buffer);
+		UpdateLightCamBuffer(LightPositionVector, CameraPositionVector);
+
+		previous_pointlight_pos = pointlight_pos;
+		previous_camera_pos = camera->position;
+	}
+
 	// Bind transformation_buffer to slot b0 of the VS
 	dxdevice_context->VSSetConstantBuffers(0, 1, &transformation_buffer);
 
@@ -173,8 +208,8 @@ void OurTestScene::Render()
 	UpdateTransformationBuffer(Msphere01 * Msphere02 * Msphere03, Mview, Mproj);
 	sphere03->Render();
 
-	UpdateTransformationBuffer(Mplane, Mview, Mproj);
-	plane->Render();
+	//UpdateTransformationBuffer(Mplane, Mview, Mproj);
+	//plane->Render();
 }
 
 void OurTestScene::Release()
@@ -186,6 +221,8 @@ void OurTestScene::Release()
 
 	SAFE_RELEASE(transformation_buffer);
 	// + release other CBuffers
+	SAFE_RELEASE(lightcam_buffer);
+	SAFE_RELEASE(phong_component_buffer);
 }
 
 void OurTestScene::WindowResize(
@@ -211,6 +248,32 @@ void OurTestScene::InitTransformationBuffer()
 	ASSERT(hr = dxdevice->CreateBuffer(&MatrixBuffer_desc, nullptr, &transformation_buffer));
 }
 
+void OurTestScene::InitLightCamBuffer()
+{
+	HRESULT hr;
+	D3D11_BUFFER_DESC MatrixBuffer_desc = { 0 };
+	MatrixBuffer_desc.Usage = D3D11_USAGE_DYNAMIC;
+	MatrixBuffer_desc.ByteWidth = sizeof(lightcam_buffer) * 2;
+	MatrixBuffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	MatrixBuffer_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	MatrixBuffer_desc.MiscFlags = 0;
+	MatrixBuffer_desc.StructureByteStride = 0;
+	ASSERT(hr = dxdevice->CreateBuffer(&MatrixBuffer_desc, nullptr, &lightcam_buffer));
+}
+
+void OurTestScene::InitPhongComponentBuffer()
+{
+	HRESULT hr;
+	D3D11_BUFFER_DESC MatrixBuffer_desc = { 0 };
+	MatrixBuffer_desc.Usage = D3D11_USAGE_DYNAMIC;
+	MatrixBuffer_desc.ByteWidth = sizeof(phong_component_buffer) * 2;
+	MatrixBuffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	MatrixBuffer_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	MatrixBuffer_desc.MiscFlags = 0;
+	MatrixBuffer_desc.StructureByteStride = 0;
+	ASSERT(hr = dxdevice->CreateBuffer(&MatrixBuffer_desc, nullptr, &phong_component_buffer));
+}
+
 void OurTestScene::UpdateTransformationBuffer(
 	mat4f ModelToWorldMatrix,
 	mat4f WorldToViewMatrix,
@@ -224,4 +287,25 @@ void OurTestScene::UpdateTransformationBuffer(
 	matrix_buffer_->WorldToViewMatrix = WorldToViewMatrix;
 	matrix_buffer_->ProjectionMatrix = ProjectionMatrix;
 	dxdevice_context->Unmap(transformation_buffer, 0);
+}
+
+void OurTestScene::UpdateLightCamBuffer(
+	vec4f LightPositionVector,
+	vec4f CameraPositionVector)
+{
+	D3D11_MAPPED_SUBRESOURCE resource;
+	dxdevice_context->Map(lightcam_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+	LightCamBuffer* matrix_buffer_ = (LightCamBuffer*)resource.pData;
+	matrix_buffer_->LightPositionVector = LightPositionVector;
+	matrix_buffer_->CameraPositionVector = CameraPositionVector;
+	dxdevice_context->Unmap(lightcam_buffer, 0);
+}
+
+void OurTestScene::UpdatePhongComponentBuffer()
+{
+	D3D11_MAPPED_SUBRESOURCE resource;
+	dxdevice_context->Map(phong_component_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+	PhongComponentBuffer* matrix_buffer_ = (PhongComponentBuffer*)resource.pData;
+	// ...
+	dxdevice_context->Unmap(phong_component_buffer, 0);
 }

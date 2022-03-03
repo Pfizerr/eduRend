@@ -26,6 +26,12 @@ struct Vertex
 	vec2f TexCoord;
 };
 
+struct LightCameraPositions
+{
+	vec3f LightPos;
+	vec3f CameraPos;
+};
+
 //
 // Phong-esque material
 //

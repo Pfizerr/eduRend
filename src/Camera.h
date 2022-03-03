@@ -52,14 +52,14 @@ public:
 
 	// Move relatively
 	//
-	void move(const vec3f& v)
-	{
-		position += v;
-	}
+	//void move(const vec3f& v)
+	//{
+	//	position += v;
+	//}
 
-	void move(const vec4f& v)
+	void move(const vec3f v)
 	{
-		
+		position += (get_ViewToWorldMatrix() * v.xyz0()).xyz();
 	}
 
 	void rotateTo(const float& roll, const float& yaw, const float& pitch)
@@ -88,6 +88,11 @@ public:
 		// Since now there is no rotation, this matrix is simply T(-p)
 
 		return mat4f::rotation(0, yaw, pitch) * mat4f::translation(-position);
+	}
+
+	mat4f get_ViewToWorldMatrix()
+	{
+		return mat4f::rotation(0, yaw, pitch).inverse() * mat4f::translation(-position).inverse();
 	}
 
 	// Matrix transforming from View space to Clip space
